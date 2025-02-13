@@ -46,11 +46,13 @@ export default function Flappytrump() {
     };
 
     function drawtrump() {
-      if (trumpImg.complete) {
-        ctx.drawImage(trumpImg, trump.x, trump.y, trump.width, trump.height);
-      } else {
-        ctx.fillStyle = "brown";
-        ctx.fillRect(trump.x, trump.y, trump.width, trump.height);
+      if (ctx) {
+        if (trumpImg.complete) {
+          ctx.drawImage(trumpImg, trump.x, trump.y, trump.width, trump.height);
+        } else {
+          ctx.fillStyle = "brown";
+          ctx.fillRect(trump.x, trump.y, trump.width, trump.height);
+        }
       }
     }
 
@@ -60,105 +62,113 @@ export default function Flappytrump() {
       width: number,
       height: number
     ) {
-      ctx.fillStyle = "#8B4513"; // Dark brown for bricks
-      ctx.fillRect(x, y, width, height);
+      if (ctx) {
+        ctx.fillStyle = "#8B4513"; // Dark brown for bricks
+        ctx.fillRect(x, y, width, height);
 
-      ctx.strokeStyle = "#D2691E"; // Lighter brown for mortar
-      ctx.lineWidth = 2;
+        ctx.strokeStyle = "#D2691E"; // Lighter brown for mortar
+        ctx.lineWidth = 2;
 
-      // Draw horizontal lines
-      for (let i = 0; i <= height; i += BRICK_HEIGHT) {
-        ctx.beginPath();
-        ctx.moveTo(x, y + i);
-        ctx.lineTo(x + width, y + i);
-        ctx.stroke();
-      }
+        // Draw horizontal lines
+        for (let i = 0; i <= height; i += BRICK_HEIGHT) {
+          ctx.beginPath();
+          ctx.moveTo(x, y + i);
+          ctx.lineTo(x + width, y + i);
+          ctx.stroke();
+        }
 
-      // Draw vertical lines
-      for (let i = 0; i <= width; i += BRICK_WIDTH) {
-        ctx.beginPath();
-        ctx.moveTo(x + i, y);
-        ctx.lineTo(x + i, y + height);
-        ctx.stroke();
-      }
+        // Draw vertical lines
+        for (let i = 0; i <= width; i += BRICK_WIDTH) {
+          ctx.beginPath();
+          ctx.moveTo(x + i, y);
+          ctx.lineTo(x + i, y + height);
+          ctx.stroke();
+        }
 
-      // Offset every other row
-      for (let i = BRICK_HEIGHT; i < height; i += BRICK_HEIGHT * 2) {
-        ctx.beginPath();
-        ctx.moveTo(x, y + i);
-        ctx.lineTo(x, y + i + BRICK_HEIGHT);
-        ctx.stroke();
+        // Offset every other row
+        for (let i = BRICK_HEIGHT; i < height; i += BRICK_HEIGHT * 2) {
+          ctx.beginPath();
+          ctx.moveTo(x, y + i);
+          ctx.lineTo(x, y + i + BRICK_HEIGHT);
+          ctx.stroke();
 
-        ctx.beginPath();
-        ctx.moveTo(x + width, y + i);
-        ctx.lineTo(x + width, y + i + BRICK_HEIGHT);
-        ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x + width, y + i);
+          ctx.lineTo(x + width, y + i + BRICK_HEIGHT);
+          ctx.stroke();
+        }
       }
     }
 
     function drawPipes() {
-      pipes.forEach((pipe) => {
-        drawBrickPattern(pipe.x, 0, PIPE_WIDTH, pipe.y);
-        drawBrickPattern(
-          pipe.x,
-          pipe.y + PIPE_GAP,
-          PIPE_WIDTH,
-          canvas.height - pipe.y - PIPE_GAP
-        );
-      });
-    }
-
-    function updateGame() {
-      trump.velocity += GRAVITY;
-      trump.y += trump.velocity;
-
-      if (trump.y + trump.height > canvas.height) {
-        trump.y = canvas.height - trump.height;
-        trump.velocity = 0;
-        endGame();
-      }
-
-      if (trump.y < 0) {
-        trump.y = 0;
-        trump.velocity = 0;
-      }
-
-      pipes.forEach((pipe, index) => {
-        pipe.x -= PIPE_SPEED;
-
-        // Check for collision
-        if (
-          trump.x < pipe.x + PIPE_WIDTH &&
-          trump.x + trump.width > pipe.x &&
-          (trump.y < pipe.y || trump.y + trump.height > pipe.y + PIPE_GAP)
-        ) {
-          endGame();
-        }
-
-        if (pipe.x + PIPE_WIDTH < 0) {
-          pipes.splice(index, 1);
-          setScore((prevScore) => prevScore + 1);
-        }
-      });
-
-      if (
-        pipes.length === 0 ||
-        pipes[pipes.length - 1].x < canvas.width - 200
-      ) {
-        pipes.push({
-          x: canvas.width,
-          y: Math.random() * (canvas.height - PIPE_GAP - 100) + 50,
+      if (ctx && canvas) {
+        pipes.forEach((pipe) => {
+          drawBrickPattern(pipe.x, 0, PIPE_WIDTH, pipe.y);
+          drawBrickPattern(
+            pipe.x,
+            pipe.y + PIPE_GAP,
+            PIPE_WIDTH,
+            canvas.height - pipe.y - PIPE_GAP
+          );
         });
       }
     }
 
+    function updateGame() {
+      if (ctx && canvas) {
+        trump.velocity += GRAVITY;
+        trump.y += trump.velocity;
+
+        if (trump.y + trump.height > canvas.height) {
+          trump.y = canvas.height - trump.height;
+          trump.velocity = 0;
+          endGame();
+        }
+
+        if (trump.y < 0) {
+          trump.y = 0;
+          trump.velocity = 0;
+        }
+
+        pipes.forEach((pipe, index) => {
+          pipe.x -= PIPE_SPEED;
+
+          // Check for collision
+          if (
+            trump.x < pipe.x + PIPE_WIDTH &&
+            trump.x + trump.width > pipe.x &&
+            (trump.y < pipe.y || trump.y + trump.height > pipe.y + PIPE_GAP)
+          ) {
+            endGame();
+          }
+
+          if (pipe.x + PIPE_WIDTH < 0) {
+            pipes.splice(index, 1);
+            setScore((prevScore) => prevScore + 1);
+          }
+        });
+
+        if (
+          pipes.length === 0 ||
+          pipes[pipes.length - 1].x < canvas.width - 200
+        ) {
+          pipes.push({
+            x: canvas.width,
+            y: Math.random() * (canvas.height - PIPE_GAP - 100) + 50,
+          });
+        }
+      }
+    }
+
     function drawGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawPipes();
-      drawtrump();
-      ctx.fillStyle = "black";
-      ctx.font = "24px Arial";
-      ctx.fillText(`Score: ${score}`, 10, 30);
+      if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawPipes();
+        drawtrump();
+        ctx.fillStyle = "black";
+        ctx.font = "24px Arial";
+        ctx.fillText(`Score: ${score}`, 10, 30);
+      }
     }
 
     function gameLoop() {
